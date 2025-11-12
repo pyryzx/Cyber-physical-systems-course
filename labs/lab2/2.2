@@ -1,0 +1,21 @@
+const int ledPin = 13;
+const int pin8   = 8;
+
+volatile bool ledState = false;
+
+ISR(PCINT0_vect) {
+  if (digitalRead(pin8) == LOW)
+    ledState = !ledState;
+  digitalWrite(ledPin, ledState);
+}
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(pin8, INPUT_PULLUP);
+
+  PCICR  |= (1 << PCIE0);
+  PCMSK0 |= (1 << PCINT0);  
+  sei();
+}
+
+void loop() {}
