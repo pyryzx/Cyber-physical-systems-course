@@ -1,0 +1,19 @@
+#include <avr/io.h>
+#include <util/delay.h>
+
+#define LED_PIN PB5   // PB5 = Arduino Uno D13 (built-in LED)
+
+void setup() {
+    // Set PB5 as output
+    DDRB |= (1 << LED_PIN);
+}
+
+void loop() {
+    // Turn LED ON for 0.1 s
+    PORTB |= (1 << LED_PIN);
+    _delay_ms(100);          // 0.1 s
+
+    // Turn LED OFF for 0.9 s
+    PORTB &= ~(1 << LED_PIN);
+    _delay_ms(900);          // 0.9 s
+}
