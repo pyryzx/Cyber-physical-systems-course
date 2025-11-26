@@ -1,0 +1,93 @@
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/power.h>
+#include <util/delay.h>
+#include <avr/sleep.h>
+
+void pinintrr_init(void);
+void adc_cont_init(void);
+void adc_continous_read(void);
+
+volatile bool int_flag = false;
+
+// since ADCL and ADCH register are contiguous 8 bit memory addresses
+uint16_t *adcPtr = (uint16_t *)&ADC;  
+
+// External interrupt 0 ISR
+ISR(INT0_vect)
+{
+    sleep_disable();
+    if (PIND)   // if the interrupt is from pin, i.e. D2
+    {
+        PORTB ^= (1 << PB5);   // led pin D13 on Uno (PB5)
+        adc_continous_read();  // start the conversion
+        int_flag = true;
+    }
+}
+
+int main(void)
+{
+    // set data direction on PB5 as output
+    DDRB |= (1 << PB5);
+
+    // configure ADC and pin interrupt
+    adc_cont_init();
+    pinintrr_init();
+
+    sei(); // Enable global interrupts
+
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_enable();
+    sleep_cpu();
+
+    while (1)
+    {
+        if (int_flag)
+        {
+            if (ADCSRA & (1 << ADIF)) // check if a conversion finished
+            {
+                uint16_t adc_val = *adcPtr;
+                ADCSRA |= (1 << ADIF); // clear the flag
+                printf("ADC VALUE = %d\n", adc_val);
+                _delay_ms(100);
+            }
+        }
+    }
+}
+
+// Falling edge triggers interrupt
+void pinintrr_init(void)
+{
+    // Configure PD2 as input
+    DDRD &= ~(1 << PD2);
+    // Enable pull-up if needed
+    PORTD |= (1 << PD2);
+    // ISC01 = 1, ISC00 = 0 for falling edge
+    EICRA |= (1 << ISC01);
+    EICRA &= ~(1 << ISC00);
+    // Enable external interrupt for INT0
+    EIMSK |= (1 << INT0);
+}
+
+void adc_cont_init(void)
+{
+    ADMUX = (1 << REFS0); // AVcc as reference, ADC0 input
+    ADCSRA = (1 << ADEN) |              // Enable ADC
+             (1 << ADPS2) | (1 << ADPS1); // Prescaler = 64 , 250 kHz ADC clock
+}
+
+void adc_continous_read(void)
+{
+    ADCSRA |= (1 << ADEN); // enable adc
+    ADCSRA = (1 << ADEN) |
+             (1 << ADATE) | // auto trigger (free running)
+             (1 << ADSC) |  // start conversion
+             (1 << ADPS2) | (1 << ADPS1);
+    ADCSRB = 0; // Free running mode (ADTS[2:0] = 000)
+}
