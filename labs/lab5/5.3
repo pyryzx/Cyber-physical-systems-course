@@ -1,0 +1,27 @@
+#define TRIG 9
+#define ECHO 8
+
+void setup() {
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+  Serial.begin(9600);
+}
+
+long getDistance() {
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);  // from PDF
+  digitalWrite(TRIG, LOW);
+
+  long duration = pulseIn(ECHO, HIGH);
+
+  long distance = duration * 0.034 / 2; // per PDF: Speed = 340 m/s
+  return distance;
+}
+
+void loop() {
+  long d = getDistance();
+  Serial.println(d);
+  delay(500);
+}
