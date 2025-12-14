@@ -8,13 +8,7 @@ void uart_init() {
   UBRR0H = ubrr_val >> 8;
   UBRR0L = ubrr_val;
 
-  // Enable transmitter
   UCSR0B = (1 << TXEN0);
-
-  // 7E2 format:
-  // - Even parity → UPM01 = 1, UPM00 = 0
-  // - 2 stop bits → USBS0 = 1
-  // - 7-bit data  → UCSZ01 = 1, UCSZ00 = 0, UCSZ02 = 0
   UCSR0C = (1 << UPM01) | (1 << USBS0) | (1 << UCSZ01);
 }
 

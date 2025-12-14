@@ -1,14 +1,10 @@
-// Exercise 1: Simple UART at 38400 8N1 on Arduino Uno (ATmega328P)
 
 void setup() {
   // Initialize UART with baud 38400, 8N1 (default)
   Serial.begin(38400);
-
-  // Give the UART some time to start (optional but nice for some terminals)
 }
 
 void loop() {
-  // Send a simple string
   Serial.println("Hello!");
 
   // Wait 500 ms between messages
